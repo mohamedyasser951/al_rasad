@@ -1,0 +1,107 @@
+export const mockContractors = [
+  {
+    id: 1,
+    name: 'شركة العنزي للمقاولات',
+    classification: 'A',
+    performance_rate: 93,
+    violations_count: 1,
+    projects_count: 14,
+    daily_work_count: 45,
+    assigned_reports_count: 12,
+  },
+  {
+    id: 2,
+    name: 'شركة اليمامة للمقاولات',
+    classification: 'B',
+    performance_rate: 74,
+    violations_count: 4,
+    projects_count: 11,
+    daily_work_count: 32,
+    assigned_reports_count: 8,
+  },
+  {
+    id: 3,
+    name: 'شركة الفوزان للمقاولات',
+    classification: 'A',
+    performance_rate: 88,
+    violations_count: 2,
+    projects_count: 18,
+    daily_work_count: 56,
+    assigned_reports_count: 15,
+  },
+]
+
+export const mockReports = [
+  {
+    id: 1,
+    report_number: 'R-1054',
+    type: 'إنارة',
+    status: 'in_progress',
+    location_name: 'حي الندى',
+    latitude: 24.7136,
+    longitude: 46.6753,
+    before_image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
+    after_image: 'https://images.unsplash.com/photo-1485081669829-bacb8c7bb1f3?w=800&auto=format&fit=crop&q=60',
+    observer_name: 'م. أحمد المطيري',
+    contractor: mockContractors[0],
+    created_at: '2026-04-26T09:00:00Z',
+  },
+  {
+    id: 2,
+    report_number: 'R-1051',
+    type: 'أسفلت',
+    status: 'new',
+    location_name: 'حي الواحة',
+    latitude: 24.7082,
+    longitude: 46.6679,
+    before_image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=60',
+    after_image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60',
+    observer_name: 'م. نورة الحربي',
+    contractor: mockContractors[1],
+    created_at: '2026-04-25T10:00:00Z',
+  },
+]
+
+export const mockDailyWork = [
+  {
+    id: 1,
+    contractor_id: 1,
+    supervisor_name: 'م. خالد السبيعي',
+    before_image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
+    after_image: 'https://images.unsplash.com/photo-1485081669829-bacb8c7bb1f3?w=800&auto=format&fit=crop&q=60',
+    latitude: 24.7112,
+    longitude: 46.6622,
+    status: 'completed',
+    created_at: '2026-04-29T14:00:00Z',
+  },
+  {
+    id: 2,
+    contractor_id: 1,
+    supervisor_name: 'م. فهد العتيبي',
+    before_image: 'https://images.unsplash.com/photo-1541888946425-d81bb19480c5?w=800&auto=format&fit=crop&q=60',
+    after_image: 'https://images.unsplash.com/photo-1581094120913-20bb9246182e?w=800&auto=format&fit=crop&q=60',
+    latitude: 24.7155,
+    longitude: 46.6788,
+    status: 'pending',
+    created_at: '2026-04-28T09:30:00Z',
+  },
+  {
+    id: 3,
+    contractor_id: 2,
+    supervisor_name: 'م. سارة القحطاني',
+    before_image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=60',
+    after_image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60',
+    latitude: 24.7047,
+    longitude: 46.6841,
+    status: 'completed',
+    created_at: '2026-04-28T10:20:00Z',
+  },
+]
+
+export const mockAlerts = [
+  { id: 1, text: 'تأخر تسليم مشروع الصرف الصحي', level: 'warning' },
+  { id: 2, text: 'مقاول قريب للإيقاف بسبب ارتفاع المخالفات', level: 'danger' },
+  { id: 3, text: 'بلاغ عاجل جديد في حي الندى', level: 'success' },
+  { id: 4, text: 'تجاوز ميزانية مشروع سفلتة بنسبة 12%', level: 'warning' },
+]
+
