@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react'
+import { FileText, Plus, User, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { fetchReports } from '../api/endpoints'
 import { EmptyState, ErrorState, LoadingState, StatusBadge } from '../components/common/States'
@@ -135,23 +135,29 @@ function NewReportForm({ onClose }) {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">رقم البلاغ</label>
-              <input 
-                type="text" 
-                className="input" 
-                placeholder="مثال: R-1055" 
-                value={formData.reportNumber}
-                onChange={(e) => setFormData({...formData, reportNumber: e.target.value})}
-              />
+              <div className="relative">
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text" 
+                  className="input pl-12 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all" 
+                  placeholder="مثال: R-1055" 
+                  value={formData.reportNumber}
+                  onChange={(e) => setFormData({...formData, reportNumber: e.target.value})}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">اسم المراقب</label>
-              <input 
-                type="text" 
-                className="input" 
-                placeholder="اسم المراقب الثلاثي" 
-                value={formData.inspectorName}
-                onChange={(e) => setFormData({...formData, inspectorName: e.target.value})}
-              />
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text" 
+                  className="input pl-12 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all" 
+                  placeholder="اسم المراقب الثلاثي" 
+                  value={formData.inspectorName}
+                  onChange={(e) => setFormData({...formData, inspectorName: e.target.value})}
+                />
+              </div>
             </div>
           </div>
 
