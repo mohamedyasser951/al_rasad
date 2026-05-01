@@ -4,18 +4,20 @@ import LocationPicker from '../components/common/LocationPicker'
 import UploadArea from '../components/common/UploadArea'
 
 const COMPANIES = [
-  { id: 1, name: "شركة العنزي للمقاولات", color: "blue", icon: Building2 },
-  { id: 2, name: "شركة اليمامة للمقاولات", color: "indigo", icon: Building2 },
+  { id: 1, name: "شركة العنزي للمقاولات العامة", color: "blue", icon: Building2 },
+  { id: 2, name: "شركة اليمامة للأعمال التجارية والمقاولات", color: "indigo", icon: Building2 },
+  { id: 3, name: "ﺷﺮﻛﺔ اﻟﺨﻠﻴﺔ اﻟﻤﺘﺤﺪة ﻟﻠﺨﺪﻣﺎت اﻟﺒﻴﺌﻴﺔ", color: "blue", icon: Building2 },
+  { id: 4, name: "مؤسسة ذاعبلوتن للمقاولات العامة", color: "indigo", icon: Building2 },
 ]
 
 export default function DailyWorkPage() {
   const [selectedCompany, setSelectedCompany] = useState(null)
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 animate-fade-in">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">توثيق أعمال المقاولين</h1>
+          <h1 className="text-2xl font-bold text-slate-900">توثيق الأعمال اليوميه</h1>
           <p className="text-sm text-slate-500">
             {selectedCompany ? `توثيق الإنجاز اليومي لـ ${selectedCompany.name}` : "اختر الشركة لبدء التوثيق"}
           </p>
@@ -37,7 +39,7 @@ export default function DailyWorkPage() {
             <button
               key={company.id}
               onClick={() => setSelectedCompany(company)}
-              className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500"
+              className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
             >
               <div className={`rounded-2xl p-4 transition-colors ${company.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
                 <company.icon size={32} />
@@ -59,6 +61,10 @@ export default function DailyWorkPage() {
 function ContractorForm({ company }) {
   const [formData, setFormData] = useState({
     supervisorName: '',
+    workersCount: '',
+    machinesCount: '',
+    activity: '',
+    notes: '',
     location: null,
     beforeImage: null,
     afterImage: null
@@ -66,7 +72,7 @@ function ContractorForm({ company }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!formData.supervisorName || !formData.location || !formData.beforeImage || !formData.afterImage) {
+    if (!formData.supervisorName || !formData.workersCount || !formData.machinesCount || !formData.activity || !formData.location || !formData.beforeImage || !formData.afterImage) {
       alert('يرجى إكمال جميع حقول التوثيق')
       return
     }
@@ -87,24 +93,70 @@ function ContractorForm({ company }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700">اسم المشرف</label>
-          <div className="relative">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">اسم المشرف</label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                className="input pl-12 py-3 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full" 
+                placeholder="اسم المشرف المسؤول" 
+                value={formData.supervisorName}
+                onChange={(e) => setFormData({...formData, supervisorName: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">النشاط</label>
             <input 
               type="text" 
-              className="input pl-12 py-3 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all" 
-              placeholder="اسم المشرف المسؤول" 
-              value={formData.supervisorName}
-              onChange={(e) => setFormData({...formData, supervisorName: e.target.value})}
+              className="input py-3 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full" 
+              placeholder="وصف النشاط" 
+              value={formData.activity}
+              onChange={(e) => setFormData({...formData, activity: e.target.value})}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">عدد العمال</label>
+            <input 
+              type="number" 
+              className="input py-3 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full" 
+              placeholder="مثال: 15" 
+              value={formData.workersCount}
+              onChange={(e) => setFormData({...formData, workersCount: e.target.value})}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">عدد الآلات</label>
+            <input 
+              type="number" 
+              className="input py-3 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full" 
+              placeholder="مثال: 3" 
+              value={formData.machinesCount}
+              onChange={(e) => setFormData({...formData, machinesCount: e.target.value})}
             />
           </div>
         </div>
 
         <LocationPicker 
+          label="الموقع"
           value={formData.location} 
           onChange={(loc) => setFormData({...formData, location: loc})} 
         />
+
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-700">التقرير (ملاحظات)</label>
+          <textarea 
+            className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full min-h-[80px]"
+            placeholder="اكتب تفاصيل التقرير أو الملاحظات..."
+            value={formData.notes}
+            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+          />
+        </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <UploadArea 

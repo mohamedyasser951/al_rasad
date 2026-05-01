@@ -1,12 +1,12 @@
 import { FileText, Plus, User, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { fetchReports } from '../api/endpoints'
-import { EmptyState, ErrorState, LoadingState, StatusBadge } from '../components/common/States'
+import { EmptyState, ErrorState, LoadingState } from '../components/common/States'
 import LocationPicker from '../components/common/LocationPicker'
 import UploadArea from '../components/common/UploadArea'
 import useApiList from '../hooks/useApiList'
 
-const filterDefaults = { search: '', status: '', type: '', contractor: '', created_at_after: '' }
+const filterDefaults = { search: '', type: '', contractor: '', created_at_after: '' }
 
 export default function ReportsPage() {
   const [filters, setFilters] = useState(filterDefaults)
@@ -18,7 +18,6 @@ export default function ReportsPage() {
       page: 1,
       page_size: 100,
       search: filters.search,
-      status: filters.status,
       type: filters.type,
       contractor: filters.contractor,
       created_at_after: filters.created_at_after,
@@ -30,7 +29,7 @@ export default function ReportsPage() {
   const selectedReport = useMemo(() => reports.find((item) => item.id === selectedReportId), [reports, selectedReportId])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-slate-900">البلاغات</h1>
         <button 
@@ -43,21 +42,15 @@ export default function ReportsPage() {
       </header>
 
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <input className="input" placeholder="بحث..." value={filters.search} onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))} />
-          <select className="input" value={filters.status} onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}>
-            <option value="">جميع الحالات</option>
-            <option value="new">جديد</option>
-            <option value="in_progress">قيد التنفيذ</option>
-            <option value="completed">مكتمل</option>
-          </select>
           <input className="input" placeholder="النوع" value={filters.type} onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))} />
           <input className="input" placeholder="المقاول" value={filters.contractor} onChange={(e) => setFilters((p) => ({ ...p, contractor: e.target.value }))} />
           <input className="input" type="date" value={filters.created_at_after} onChange={(e) => setFilters((p) => ({ ...p, created_at_after: e.target.value }))} />
         </div>
       </section>
 
-      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 animate-fade-up">
         {loading && <LoadingState lines={5} />}
         {error && <ErrorState message="تعذر تحميل بيانات البلاغات." />}
         {!loading && !error && !reports.length && <EmptyState message="لا توجد بلاغات مطابقة للفلاتر." />}
@@ -69,7 +62,6 @@ export default function ReportsPage() {
                   <th className="px-4 py-4 font-semibold">رقم البلاغ</th>
                   <th className="px-4 py-4 font-semibold">النوع</th>
                   <th className="px-4 py-4 font-semibold">الموقع</th>
-                  <th className="px-4 py-4 font-semibold">الحالة</th>
                   <th className="px-4 py-4 font-semibold">المقاول</th>
                   <th className="px-4 py-4 font-semibold">التاريخ</th>
                 </tr>
@@ -84,7 +76,6 @@ export default function ReportsPage() {
                     </td>
                     <td className="px-4 py-4">{report.type}</td>
                     <td className="px-4 py-4 text-slate-500">{report.location_name}</td>
-                    <td className="px-4 py-4"><StatusBadge status={report.status} /></td>
                     <td className="px-4 py-4">{report.contractor?.name || 'غير محدد'}</td>
                     <td className="px-4 py-4 text-slate-500">{new Date(report.created_at).toLocaleDateString('ar-SA')}</td>
                   </tr>
@@ -105,6 +96,9 @@ function NewReportForm({ onClose }) {
   const [formData, setFormData] = useState({
     reportNumber: '',
     inspectorName: '',
+    contractor: '',
+    type: '',
+    notes: '',
     location: null,
     beforeImage: null,
     afterImage: null
@@ -112,7 +106,7 @@ function NewReportForm({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!formData.reportNumber || !formData.inspectorName || !formData.location || !formData.beforeImage) {
+    if (!formData.reportNumber || !formData.inspectorName || !formData.contractor || !formData.type || !formData.location || !formData.beforeImage) {
       alert('يرجى إكمال جميع الحقول المطلوبة')
       return
     }
@@ -161,10 +155,51 @@ function NewReportForm({ onClose }) {
             </div>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">المقاول</label>
+              <select
+                className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full"
+                value={formData.contractor}
+                onChange={(e) => setFormData({...formData, contractor: e.target.value})}
+              >
+                <option value="" disabled>اختر المقاول</option>
+                <option value="شركة العنزي للمقاولات العامة">شركة العنزي للمقاولات العامة</option>
+                <option value="شركة اليمامة للأعمال التجارية والمقاولات">شركة اليمامة للأعمال التجارية والمقاولات</option>
+                <option value="ﺷﺮﻛﺔ اﻟﺨﻠﻴﺔ اﻟﻤﺘﺤﺪة ﻟﻠﺨﺪﻣﺎت اﻟﺒﻴﺌﻴﺔ">ﺷﺮﻛﺔ اﻟﺨﻠﻴﺔ اﻟﻤﺘﺤﺪة ﻟﻠﺨﺪﻣﺎت اﻟﺒﻴﺌﻴﺔ</option>
+                <option value="مؤسسة ذاعبلوتن للمقاولات العامة">مؤسسة ذاعبلوتن للمقاولات العامة</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">نوع البلاغ</label>
+              <select
+                className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full"
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+              >
+                <option value="" disabled>اختر النوع</option>
+                <option value="إنارة">إنارة</option>
+                <option value="أسفلت">أسفلت</option>
+                <option value="أرصفة">أرصفة</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+          </div>
+
           <LocationPicker 
             value={formData.location} 
             onChange={(loc) => setFormData({...formData, location: loc})} 
           />
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">ملاحظات (اختياري)</label>
+            <textarea 
+              className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full min-h-[80px]"
+              placeholder="اكتب ملاحظاتك هنا..."
+              value={formData.notes}
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+            />
+          </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <UploadArea 
@@ -236,11 +271,8 @@ function ReportDetails({ report, onClose }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50 p-4 text-blue-800">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-blue-100 p-2"><StatusBadge status={report.status} /></div>
-              <span className="text-sm font-semibold">حالة البلاغ الحالية</span>
-            </div>
+          <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4 text-slate-600">
+            <span className="text-sm font-semibold">تاريخ البلاغ</span>
             <span className="text-xs">{new Date(report.created_at).toLocaleDateString('ar-SA')}</span>
           </div>
         </div>

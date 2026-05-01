@@ -15,7 +15,7 @@ let DefaultIcon = L.icon({
 })
 L.Marker.prototype.options.icon = DefaultIcon
 
-export default function LocationPicker({ value, onChange }) {
+export default function LocationPicker({ value, onChange, label }) {
   const [showMap, setShowMap] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -60,7 +60,7 @@ export default function LocationPicker({ value, onChange }) {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-semibold text-slate-700">موقع البلاغ (GPS)</label>
+      <label className="text-sm font-semibold text-slate-700">{label || "موقع البلاغ (GPS)"}</label>
       <div className="flex flex-col gap-2">
         <div 
           onClick={() => setShowMap(true)}

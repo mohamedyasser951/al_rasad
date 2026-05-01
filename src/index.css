@@ -29,3 +29,27 @@ body {
 .input:focus {
   box-shadow: 0 0 0 2px rgb(191 219 254);
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.4s ease-out forwards;
+}

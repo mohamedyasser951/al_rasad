@@ -24,22 +24,4 @@ export function EmptyState({ message = 'لا توجد بيانات حالياً.
   )
 }
 
-export function StatusBadge({ status }) {
-  const statusMap = {
-    new: 'جديد',
-    in_progress: 'قيد التنفيذ',
-    completed: 'مكتمل',
-  }
 
-  const colorMap = {
-    new: 'bg-blue-100 text-blue-700',
-    in_progress: 'bg-amber-100 text-amber-700',
-    completed: 'bg-emerald-100 text-emerald-700',
-  }
-
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${colorMap[status] || colorMap.pending}`}>
-      {statusMap[status] || status}
-    </span>
-  )
-}
