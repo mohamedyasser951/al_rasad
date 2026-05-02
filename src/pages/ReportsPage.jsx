@@ -192,10 +192,10 @@ function NewReportForm({ onClose }) {
           />
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">ملاحظات (اختياري)</label>
+            <label className="text-sm font-semibold text-slate-700">تفاصيل البلاغ</label>
             <textarea 
               className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full min-h-[80px]"
-              placeholder="اكتب ملاحظاتك هنا..."
+              placeholder="اكتب تفاصيل البلاغ هنا..."
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
             />
@@ -269,6 +269,11 @@ function ReportDetails({ report, onClose }) {
               <img src={report.after_image} alt="بعد" className="aspect-video w-full rounded-2xl object-cover shadow-sm ring-1 ring-slate-100" />
               <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">صورة بعد</span>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-slate-600">
+            <span className="text-sm font-semibold border-b border-slate-200 pb-2">تفاصيل البلاغ</span>
+            <p className="text-sm leading-relaxed text-slate-700">{report.notes || 'لا توجد تفاصيل إضافية'}</p>
           </div>
 
           <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4 text-slate-600">

@@ -40,16 +40,16 @@ export default function DashboardPage() {
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <KpiCard icon={<Clock3 size={18} />} title="إجمالي البلاغات" value={kpis.totalReports} />
         <KpiCard icon={<Clock3 size={18} />} title="بلاغات اليوم" value={kpis.dailyCount} />
-        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين النشطين" value={kpis.activeContractors} />
+        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين" value={kpis.activeContractors} />
       </section>
 
       <section className="grid gap-4">
         <article className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
           <h2 className="mb-4 text-lg font-bold">خريطة البلاغات (GPS)</h2>
           <div className="relative h-80 overflow-hidden rounded-xl border border-slate-100">
-            <MapContainer 
-              center={[24.7136, 46.6753]} 
-              zoom={11} 
+            <MapContainer
+              center={[24.7136, 46.6753]}
+              zoom={11}
               style={{ height: '100%', width: '100%' }}
               scrollWheelZoom={false}
             >

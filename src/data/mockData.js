@@ -42,9 +42,10 @@ export const mockReports = [
     longitude: 46.6753,
     before_image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
     after_image: 'https://images.unsplash.com/photo-1485081669829-bacb8c7bb1f3?w=800&auto=format&fit=crop&q=60',
-    observer_name: 'م. أحمد المطيري',
+    observer_name: 'م. محمد ياسر',
     contractor: mockContractors[0],
     created_at: '2026-04-26T09:00:00Z',
+    notes: 'يوجد عطل في أعمدة الإنارة في الشارع الرئيسي لحي الندى، يتطلب صيانة فورية واستبدال المصابيح التالفة.',
   },
   {
     id: 2,
@@ -56,9 +57,10 @@ export const mockReports = [
     longitude: 46.6679,
     before_image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=60',
     after_image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60',
-    observer_name: 'م. نورة الحربي',
+    observer_name: 'م. محمد ياسر',
     contractor: mockContractors[1],
     created_at: '2026-04-25T10:00:00Z',
+    notes: 'تصدعات في الطبقة الأسفلتية بطول 10 أمتار، تحتاج إلى كشط وسفلتة من جديد لمنع تضرر المركبات.',
   },
 ]
 
