@@ -19,10 +19,18 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon
 
 function normalizeKpis(reports) {
-  const dailyCount = reports.filter(r => new Date(r.created_at).toDateString() === new Date().toDateString()).length || reports.length
+  const today = new Date().toDateString()
+  const dailyCount = reports.filter(r => new Date(r.created_at).toDateString() === today).length || 0
   const activeContractors = new Set(reports.map((item) => item.contractor?.id)).size
   const totalReports = reports.length
-  return { dailyCount, activeContractors, totalReports }
+  const violationCount = reports.filter(r => r.status === 'violation').length
+  
+  return { 
+    dailyCount, 
+    activeContractors, 
+    totalReports,
+    violationCount
+  }
 }
 
 export default function DashboardPage() {
@@ -37,10 +45,11 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard icon={<Clock3 size={18} />} title="إجمالي البلاغات" value={kpis.totalReports} />
         <KpiCard icon={<Clock3 size={18} />} title="بلاغات اليوم" value={kpis.dailyCount} />
-        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين" value={kpis.activeContractors} />
+        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين النشطين" value={kpis.activeContractors} />
+        <KpiCard icon={<AlertTriangle size={18} />} title="المخالفات" value={kpis.violationCount} color="red" />
       </section>
 
       <section className="grid gap-4">
@@ -56,11 +65,12 @@ export default function DashboardPage() {
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               {reports.map((report) => (
                 report.latitude && report.longitude && (
-                  <Marker key={report.id} position={[report.latitude, report.longitude]}>
+                  <Marker key={report.id} position={[parseFloat(report.latitude), parseFloat(report.longitude)]}>
                     <Popup>
                       <div className="text-right font-sans">
                         <p className="font-bold text-blue-600">{report.report_number}</p>
                         <p className="text-xs text-slate-500">{report.location_name}</p>
+                        <p className="text-xs text-slate-500">{report.type_display}</p>
                       </div>
                     </Popup>
                   </Marker>
@@ -74,10 +84,11 @@ export default function DashboardPage() {
   )
 }
 
-function KpiCard({ icon, title, value }) {
+function KpiCard({ icon, title, value, color = 'blue' }) {
+  const colorClass = color === 'red' ? 'text-red-600' : 'text-blue-600'
   return (
     <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md hover:-translate-y-1 animate-fade-up">
-      <div className="mb-3 flex items-center gap-2.5 text-sm font-semibold text-slate-500">{icon} {title}</div>
+      <div className={`mb-3 flex items-center gap-2.5 text-sm font-semibold ${colorClass}`}>{icon} {title}</div>
       <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
     </article>
   )

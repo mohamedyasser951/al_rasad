@@ -1,6 +1,7 @@
 import { FileText, LayoutDashboard, LogOut, Menu, Settings, X } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
 
 const links = [
   { to: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
@@ -10,6 +11,13 @@ const links = [
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false)
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white p-6">
@@ -44,7 +52,10 @@ export default function DashboardLayout() {
             <span>الإعدادات</span>
           </button>
 
-          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-rose-600 transition hover:bg-rose-50">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+          >
             <LogOut size={20} />
             <span>تسجيل الخروج</span>
           </button>
@@ -55,8 +66,8 @@ export default function DashboardLayout() {
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-md shadow-blue-200" />
           <div className="text-right">
-            <p className="text-sm font-bold">محمد ياسر</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">Admin / Supervisor</p>
+            <p className="text-sm font-bold">{user?.full_name || user?.username || 'مستخدم'}</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider">{user?.role_display || 'User'}</p>
           </div>
         </div>
       </div>

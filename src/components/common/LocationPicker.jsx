@@ -15,9 +15,19 @@ let DefaultIcon = L.icon({
 })
 L.Marker.prototype.options.icon = DefaultIcon
 
-export default function LocationPicker({ value, onChange, label }) {
+export default function LocationPicker({ value, onChange, onLocationChange, label }) {
   const [showMap, setShowMap] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState(value)
+
+  const handleChange = (location) => {
+    setSelectedLocation(location)
+    if (onLocationChange) {
+      onLocationChange(location.lat, location.lng, location.address)
+    } else if (onChange) {
+      onChange(location)
+    }
+  }
 
   const reverseGeocode = async (lat, lng) => {
     try {
@@ -35,7 +45,7 @@ export default function LocationPicker({ value, onChange, label }) {
   const handleLocationSelect = async (lat, lng) => {
     setLoading(true)
     const address = await reverseGeocode(lat, lng)
-    onChange({ lat, lng, address })
+    handleChange({ lat, lng, address })
     setLoading(false)
     setShowMap(false)
   }
@@ -47,7 +57,7 @@ export default function LocationPicker({ value, onChange, label }) {
         async (position) => {
           const { latitude, longitude } = position.coords
           const address = await reverseGeocode(latitude, longitude)
-          onChange({ lat: latitude.toFixed(6), lng: longitude.toFixed(6), address })
+          handleChange({ lat: latitude, lng: longitude, address })
           setLoading(false)
         },
         () => {
@@ -70,8 +80,8 @@ export default function LocationPicker({ value, onChange, label }) {
           {loading ? (
             <span className="animate-pulse">جاري تحديد العنوان...</span>
           ) : (
-            <span className={value?.address ? "text-slate-900 font-medium" : "text-slate-400"}>
-              {value?.address || "انقر لاختيار الموقع من الخريطة..."}
+            <span className={selectedLocation?.address ? "text-slate-900 font-medium" : "text-slate-400"}>
+              {selectedLocation?.address || "انقر لاختيار الموقع من الخريطة..."}
             </span>
           )}
         </div>
@@ -98,13 +108,13 @@ export default function LocationPicker({ value, onChange, label }) {
             
             <div className="h-full w-full">
               <MapContainer 
-                center={[value?.lat || 24.7136, value?.lng || 46.6753]} 
+                center={[selectedLocation?.lat || 24.7136, selectedLocation?.lng || 46.6753]} 
                 zoom={13} 
                 style={{ height: 'calc(100% - 65px)', width: '100%' }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <LocationMarker onSelect={handleLocationSelect} />
-                {value?.lat && <Marker position={[value.lat, value.lng]} />}
+                {selectedLocation?.lat && <Marker position={[selectedLocation.lat, selectedLocation.lng]} />}
               </MapContainer>
             </div>
             
