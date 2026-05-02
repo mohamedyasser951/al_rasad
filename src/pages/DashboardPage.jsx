@@ -23,13 +23,11 @@ function normalizeKpis(reports) {
   const dailyCount = reports.filter(r => new Date(r.created_at).toDateString() === today).length || 0
   const activeContractors = new Set(reports.map((item) => item.contractor?.id)).size
   const totalReports = reports.length
-  const violationCount = reports.filter(r => r.status === 'violation').length
-  
-  return { 
-    dailyCount, 
-    activeContractors, 
-    totalReports,
-    violationCount
+
+  return {
+    dailyCount,
+    activeContractors,
+    totalReports
   }
 }
 
@@ -45,11 +43,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <KpiCard icon={<Clock3 size={18} />} title="إجمالي البلاغات" value={kpis.totalReports} />
         <KpiCard icon={<Clock3 size={18} />} title="بلاغات اليوم" value={kpis.dailyCount} />
-        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين النشطين" value={kpis.activeContractors} />
-        <KpiCard icon={<AlertTriangle size={18} />} title="المخالفات" value={kpis.violationCount} color="red" />
+        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين " value={kpis.activeContractors} />
       </section>
 
       <section className="grid gap-4">

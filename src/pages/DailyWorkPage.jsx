@@ -1,10 +1,14 @@
-import { AlertCircle, ArrowRight, Building2, Save, User } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { AlertCircle, ArrowRight, Building2, Save, User, History, ClipboardList, Calendar, MapPin, Truck, Users } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
 import { dailyWorkService, contractorService } from '../api/services'
+import { fetchDailyWork } from '../api/endpoints'
+import useApiList from '../hooks/useApiList'
+import { EmptyState, ErrorState, LoadingState } from '../components/common/States'
 import LocationPicker from '../components/common/LocationPicker'
 import UploadArea from '../components/common/UploadArea'
 
 export default function DailyWorkPage() {
+  const [activeTab, setActiveTab] = useState('new') // 'new' or 'history'
   const [contractors, setContractors] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedContractor, setSelectedContractor] = useState(null)
@@ -14,59 +18,164 @@ export default function DailyWorkPage() {
       .list({ is_active: true, page_size: 100 })
       .then((response) => {
         setContractors(response.data?.results || [])
-        if (response.data?.results?.length > 0) {
-          setSelectedContractor(response.data.results[0])
-        }
       })
       .catch((err) => console.error('Failed to load contractors:', err))
       .finally(() => setLoading(false))
   }, [])
 
   return (
-    <div className="space-y-8 pb-10 animate-fade-in">
-      <header className="flex items-center justify-between">
+    <div className="space-y-6 pb-10 animate-fade-in">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">توثيق الأعمال اليوميه</h1>
-          <p className="text-sm text-slate-500">
-            {selectedContractor ? `توثيق الإنجاز اليومي لـ ${selectedContractor.name}` : "اختر الشركة لبدء التوثيق"}
-          </p>
+          <p className="text-sm text-slate-500">نظام متابعة وإدارة الإنجاز اليومي للميدان</p>
         </div>
-        {selectedContractor && (
+        
+        <div className="flex rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
           <button 
-            onClick={() => setSelectedContractor(null)}
-            className="flex items-center gap-2 text-sm font-bold text-blue-600 transition hover:text-blue-700"
+            onClick={() => setActiveTab('new')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${activeTab === 'new' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
           >
-            <ArrowRight size={18} />
-            تغيير الشركة
+            <ClipboardList size={18} />
+            <span>توثيق جديد</span>
           </button>
-        )}
+          <button 
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            <History size={18} />
+            <span>سجل الأعمال</span>
+          </button>
+        </div>
       </header>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-40">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      {activeTab === 'new' ? (
+        <div className="space-y-6">
+          {selectedContractor && (
+            <div className="flex items-center justify-between animate-fade-in">
+              <p className="text-sm font-medium text-slate-600">
+                توثيق الإنجاز لـ: <span className="font-bold text-blue-600">{selectedContractor.name}</span>
+              </p>
+              <button 
+                onClick={() => setSelectedContractor(null)}
+                className="flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-blue-600"
+              >
+                <ArrowRight size={18} />
+                تغيير الشركة
+              </button>
+            </div>
+          )}
+
+          {loading ? (
+            <LoadingState lines={5} />
+          ) : !selectedContractor ? (
+            <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {contractors.map((contractor) => (
+                <button
+                  key={contractor.id}
+                  onClick={() => setSelectedContractor(contractor)}
+                  className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
+                >
+                  <div className="rounded-2xl p-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
+                    <Building2 size={32} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">{contractor.name}</h3>
+                  <div className="text-xs font-bold uppercase tracking-widest text-slate-400">بدء التوثيق</div>
+                </button>
+              ))}
+            </section>
+          ) : (
+            <div className="mx-auto max-w-3xl">
+              <DailyWorkForm contractor={selectedContractor} onSuccess={() => setSelectedContractor(null)} />
+            </div>
+          )}
         </div>
-      ) : !selectedContractor ? (
-        <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {contractors.map((contractor) => (
-            <button
-              key={contractor.id}
-              onClick={() => setSelectedContractor(contractor)}
-              className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
-            >
-              <div className="rounded-2xl p-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
-                <Building2 size={32} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800">{contractor.name}</h3>
-              <div className="text-xs font-bold uppercase tracking-widest text-slate-400">بدء التوثيق</div>
-            </button>
-          ))}
-        </section>
       ) : (
-        <div className="mx-auto max-w-3xl">
-          <DailyWorkForm contractor={selectedContractor} onSuccess={() => setSelectedContractor(null)} />
-        </div>
+        <DailyWorkHistory />
       )}
+    </div>
+  )
+}
+
+function DailyWorkHistory() {
+  const params = useMemo(() => ({ page_size: 50, ordering: '-created_at' }), [])
+  const { data: history, loading, error } = useApiList(fetchDailyWork, params)
+
+  if (loading) return <LoadingState lines={8} />
+  if (error) return <ErrorState message="تعذر تحميل سجل الأعمال." />
+  if (!history.length) return <EmptyState message="لا يوجد سجل أعمال حالياً." />
+
+  return (
+    <div className="grid gap-6">
+      {history.map((item) => (
+        <article key={item.id} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md animate-fade-up">
+          <div className="flex flex-col md:flex-row">
+            {/* Before/After Images side-by-side on the left for desktop, top for mobile */}
+            <div className="flex aspect-video w-full shrink-0 gap-1 bg-slate-100 md:w-72 lg:w-96">
+              <div className="relative flex-1 group">
+                <img src={item.before_image_url || item.before_image} alt="قبل" className="h-full w-full object-cover" />
+                <div className="absolute bottom-2 inset-x-2 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">قبل</div>
+              </div>
+              <div className="relative flex-1 group">
+                <img src={item.after_image_url || item.after_image} alt="بعد" className="h-full w-full object-cover" />
+                <div className="absolute bottom-2 inset-x-2 rounded-lg bg-blue-600/60 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">بعد</div>
+              </div>
+            </div>
+
+            <div className="flex flex-1 flex-col p-6">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600 uppercase tracking-wider">{item.contractor?.name}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">{item.activity}</h3>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                  <Calendar size={14} />
+                  <span>{new Date(item.created_at).toLocaleDateString('ar-SA')}</span>
+                </div>
+              </div>
+
+              <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3">
+                  <div className="rounded-lg bg-white p-1.5 text-blue-600 shadow-sm"><User size={14} /></div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-500">المشرف</p>
+                    <p className="truncate text-xs font-bold">{item.supervisor_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3">
+                  <div className="rounded-lg bg-white p-1.5 text-blue-600 shadow-sm"><MapPin size={14} /></div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-500">الموقع</p>
+                    <p className="truncate text-xs font-bold">{item.location_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3">
+                  <div className="rounded-lg bg-white p-1.5 text-blue-600 shadow-sm"><Users size={14} /></div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-500">العمال</p>
+                    <p className="text-xs font-bold">{item.workers_count}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3">
+                  <div className="rounded-lg bg-white p-1.5 text-blue-600 shadow-sm"><Truck size={14} /></div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-500">الآلات</p>
+                    <p className="text-xs font-bold">{item.machines_count}</p>
+                  </div>
+                </div>
+              </div>
+
+              {item.notes && (
+                <div className="mt-auto border-t border-slate-100 pt-4">
+                  <p className="text-sm leading-relaxed text-slate-600 line-clamp-2">{item.notes}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
     </div>
   )
 }
