@@ -11,10 +11,12 @@ const links = [
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const navigate = useNavigate()
   const { user, logout } = useAuth()
 
   const handleLogout = async () => {
+    setShowLogoutConfirm(false)
     await logout()
     navigate('/login', { replace: true })
   }
@@ -53,7 +55,7 @@ export default function DashboardLayout() {
           </button>
 
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
           >
             <LogOut size={20} />
@@ -110,6 +112,35 @@ export default function DashboardLayout() {
           </main>
         </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-rose-50 p-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                <LogOut size={32} />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-slate-900">تسجيل الخروج</h3>
+              <p className="text-sm text-slate-600">هل أنت متأكد أنك تريد تسجيل الخروج من النظام؟</p>
+            </div>
+            <div className="flex gap-3 bg-slate-50 p-6">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 rounded-xl bg-rose-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 transition-colors"
+              >
+                نعم، خروج
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

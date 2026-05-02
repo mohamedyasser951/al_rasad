@@ -33,14 +33,14 @@ export default function DailyWorkPage() {
         
         <div className="flex rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
           <button 
-            onClick={() => setActiveTab('new')}
+            onClick={() => { setActiveTab('new'); setSelectedContractor(null); }}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${activeTab === 'new' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
           >
             <ClipboardList size={18} />
             <span>توثيق جديد</span>
           </button>
           <button 
-            onClick={() => setActiveTab('history')}
+            onClick={() => { setActiveTab('history'); setSelectedContractor(null); }}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
           >
             <History size={18} />
@@ -49,56 +49,57 @@ export default function DailyWorkPage() {
         </div>
       </header>
 
-      {activeTab === 'new' ? (
-        <div className="space-y-6">
-          {selectedContractor && (
-            <div className="flex items-center justify-between animate-fade-in">
-              <p className="text-sm font-medium text-slate-600">
-                توثيق الإنجاز لـ: <span className="font-bold text-blue-600">{selectedContractor.name}</span>
-              </p>
-              <button 
-                onClick={() => setSelectedContractor(null)}
-                className="flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-blue-600"
-              >
-                <ArrowRight size={18} />
-                تغيير الشركة
-              </button>
-            </div>
-          )}
+      <div className="space-y-6">
+        {selectedContractor && (
+          <div className="flex items-center justify-between animate-fade-in">
+            <p className="text-sm font-medium text-slate-600">
+              {activeTab === 'new' ? 'توثيق الإنجاز لـ: ' : 'سجل الأعمال لـ: '}
+              <span className="font-bold text-blue-600">{selectedContractor.name}</span>
+            </p>
+            <button 
+              onClick={() => setSelectedContractor(null)}
+              className="flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-blue-600"
+            >
+              <ArrowRight size={18} />
+              تغيير الشركة
+            </button>
+          </div>
+        )}
 
-          {loading ? (
-            <LoadingState lines={5} />
-          ) : !selectedContractor ? (
-            <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {contractors.map((contractor) => (
-                <button
-                  key={contractor.id}
-                  onClick={() => setSelectedContractor(contractor)}
-                  className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
-                >
-                  <div className="rounded-2xl p-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
-                    <Building2 size={32} />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-800">{contractor.name}</h3>
-                  <div className="text-xs font-bold uppercase tracking-widest text-slate-400">بدء التوثيق</div>
-                </button>
-              ))}
-            </section>
-          ) : (
-            <div className="mx-auto max-w-3xl">
-              <DailyWorkForm contractor={selectedContractor} onSuccess={() => setSelectedContractor(null)} />
-            </div>
-          )}
-        </div>
-      ) : (
-        <DailyWorkHistory />
-      )}
+        {loading ? (
+          <LoadingState lines={5} />
+        ) : !selectedContractor ? (
+          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {contractors.map((contractor) => (
+              <button
+                key={contractor.id}
+                onClick={() => setSelectedContractor(contractor)}
+                className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
+              >
+                <div className="rounded-2xl p-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
+                  <Building2 size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800">{contractor.name}</h3>
+                <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                  {activeTab === 'new' ? 'بدء التوثيق' : 'عرض السجل'}
+                </div>
+              </button>
+            ))}
+          </section>
+        ) : activeTab === 'new' ? (
+          <div className="mx-auto max-w-3xl">
+            <DailyWorkForm contractor={selectedContractor} onSuccess={() => setSelectedContractor(null)} />
+          </div>
+        ) : (
+          <DailyWorkHistory contractor={selectedContractor} />
+        )}
+      </div>
     </div>
   )
 }
 
-function DailyWorkHistory() {
-  const params = useMemo(() => ({ page_size: 50, ordering: '-created_at' }), [])
+function DailyWorkHistory({ contractor }) {
+  const params = useMemo(() => ({ page_size: 50, ordering: '-created_at', contractor_id: contractor?.id }), [contractor?.id])
   const { data: history, loading, error } = useApiList(fetchDailyWork, params)
 
   if (loading) return <LoadingState lines={8} />
@@ -201,8 +202,13 @@ function DailyWorkForm({ contractor, onSuccess }) {
     e.preventDefault()
     setError('')
 
-    if (!formData.supervisor_name || !formData.workers_count || !formData.machines_count || !formData.activity || !formData.location_name) {
+    if (!formData.supervisor_name || !formData.workers_count || !formData.machines_count || !formData.activity) {
       setError('يرجى إكمال جميع حقول التوثيق المطلوبة')
+      return
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      setError('يرجى تحديد موقع الإنجاز (GPS)')
       return
     }
 
@@ -307,17 +313,7 @@ function DailyWorkForm({ contractor, onSuccess }) {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700">الموقع *</label>
-          <input 
-            type="text" 
-            className="input py-3 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full" 
-            placeholder="اسم الموقع" 
-            value={formData.location_name}
-            onChange={(e) => setFormData({...formData, location_name: e.target.value})}
-            disabled={submitting}
-          />
-        </div>
+
 
         <LocationPicker 
           onLocationChange={(lat, lng, name) => {

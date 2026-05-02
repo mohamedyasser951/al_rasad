@@ -13,7 +13,14 @@ export default function ReportsPage() {
   const [filters, setFilters] = useState(filterDefaults)
   const [selectedReportId, setSelectedReportId] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  
+  const [contractors, setContractors] = useState([])
+
+  useEffect(() => {
+    contractorService.list({ is_active: true, page_size: 100 }).then(res => {
+      setContractors(res.data?.results || [])
+    }).catch(err => console.error('Failed to load contractors:', err))
+  }, [])
+
   const params = useMemo(
     () => ({
       page: 1,
@@ -43,6 +50,17 @@ export default function ReportsPage() {
       </header>
 
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-700">تصفية البلاغات</h2>
+          {Object.keys(filters).some(key => filters[key] !== filterDefaults[key]) && (
+            <button
+              onClick={() => setFilters(filterDefaults)}
+              className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
+            >
+              مسح الفلاتر
+            </button>
+          )}
+        </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <input className="input" placeholder="بحث..." value={filters.search} onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))} />
           <select className="input" value={filters.type} onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))}>
@@ -52,7 +70,12 @@ export default function ReportsPage() {
             <option value="sidewalk">أرصفة</option>
             <option value="other">أخرى</option>
           </select>
-          <input className="input" placeholder="المقاول" value={filters.contractor} onChange={(e) => setFilters((p) => ({ ...p, contractor: e.target.value }))} />
+          <select className="input" value={filters.contractor} onChange={(e) => setFilters((p) => ({ ...p, contractor: e.target.value }))}>
+            <option value="">جميع المقاولين</option>
+            {contractors.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
           <input className="input" type="date" value={filters.created_at_after} onChange={(e) => setFilters((p) => ({ ...p, created_at_after: e.target.value }))} />
         </div>
       </section>
@@ -70,7 +93,7 @@ export default function ReportsPage() {
                   <th className="px-4 py-4 font-semibold">النوع</th>
                   <th className="px-4 py-4 font-semibold">الموقع</th>
                   <th className="px-4 py-4 font-semibold">المقاول</th>
-                  <th className="px-4 py-4 font-semibold">الحالة</th>
+
                   <th className="px-4 py-4 font-semibold">التاريخ</th>
                 </tr>
               </thead>
@@ -85,11 +108,7 @@ export default function ReportsPage() {
                     <td className="px-4 py-4">{report.type_display}</td>
                     <td className="px-4 py-4 text-slate-500">{report.location_name}</td>
                     <td className="px-4 py-4">{report.contractor?.name || 'غير محدد'}</td>
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">
-                        {report.status_display}
-                      </span>
-                    </td>
+
                     <td className="px-4 py-4 text-slate-500">{new Date(report.created_at).toLocaleDateString('ar-SA')}</td>
                   </tr>
                 ))}
@@ -134,8 +153,13 @@ function NewReportForm({ onClose }) {
     e.preventDefault()
     setError('')
 
-    if (!formData.observer_name || !formData.type || !formData.location_name) {
+    if (!formData.observer_name || !formData.type) {
       setError('يرجى إكمال جميع الحقول المطلوبة')
+      return
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      setError('يرجى تحديد موقع البلاغ (GPS)')
       return
     }
 
@@ -156,7 +180,22 @@ function NewReportForm({ onClose }) {
       await reportService.create(submitData)
       onClose()
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'فشل حفظ البلاغ')
+      const errorData = err.response?.data
+      if (errorData && typeof errorData === 'object') {
+        // Map backend validation errors to friendly Arabic messages
+        const errorMessages = []
+        if (errorData.latitude || errorData.longitude) {
+          errorMessages.push('إحداثيات الموقع غير صحيحة، يرجى إعادة تحديد الموقع')
+        }
+        
+        if (errorMessages.length > 0) {
+          setError(errorMessages.join(' - '))
+        } else {
+          setError(errorData.detail || 'حدث خطأ أثناء حفظ البلاغ')
+        }
+      } else {
+        setError('حدث خطأ في الاتصال بالخادم')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -212,40 +251,31 @@ function NewReportForm({ onClose }) {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">المقاول</label>
-              <select
-                className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full"
-                value={formData.contractor_id}
-                onChange={(e) => setFormData({...formData, contractor_id: e.target.value})}
-                disabled={submitting}
-              >
-                <option value="">بدون مقاول</option>
-                {contractors.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">الموقع *</label>
-              <input 
-                type="text" 
-                className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all" 
-                placeholder="اسم الموقع" 
-                value={formData.location_name}
-                onChange={(e) => setFormData({...formData, location_name: e.target.value})}
-                disabled={submitting}
-              />
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">المقاول</label>
+            <select
+              className="input bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-all w-full"
+              value={formData.contractor_id}
+              onChange={(e) => setFormData({...formData, contractor_id: e.target.value})}
+              disabled={submitting}
+            >
+              <option value="">بدون مقاول</option>
+              {contractors.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
 
           <LocationPicker 
             onLocationChange={(lat, lng, name) => {
+              // Round to 6 decimal places to match backend precision and avoid max_digits error
+              const roundedLat = parseFloat(Number(lat).toFixed(6))
+              const roundedLng = parseFloat(Number(lng).toFixed(6))
+              
               setFormData({
                 ...formData,
-                latitude: lat.toString(),
-                longitude: lng.toString(),
+                latitude: roundedLat.toString(),
+                longitude: roundedLng.toString(),
                 location_name: name || formData.location_name
               })
             }}

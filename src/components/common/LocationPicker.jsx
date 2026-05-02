@@ -56,8 +56,12 @@ export default function LocationPicker({ value, onChange, onLocationChange, labe
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords
+          // Keep precision for reverse geocoding
           const address = await reverseGeocode(latitude, longitude)
-          handleChange({ lat: latitude, lng: longitude, address })
+          // Round for state and backend
+          const lat = parseFloat(latitude.toFixed(6))
+          const lng = parseFloat(longitude.toFixed(6))
+          handleChange({ lat, lng, address })
           setLoading(false)
         },
         () => {
@@ -133,7 +137,10 @@ export default function LocationPicker({ value, onChange, onLocationChange, labe
 function LocationMarker({ onSelect }) {
   useMapEvents({
     click(e) {
-      onSelect(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6))
+      // Ensure we pass numbers and round them
+      const lat = parseFloat(e.latlng.lat.toFixed(6))
+      const lng = parseFloat(e.latlng.lng.toFixed(6))
+      onSelect(lat, lng)
     },
   })
   return null
