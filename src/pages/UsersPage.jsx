@@ -1,5 +1,5 @@
 import { Users, Plus, Search, Edit2, Trash2, Shield, Key, Mail, User as UserIcon, CheckCircle2, XCircle } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { userService, contractorService } from '../api/services'
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States'
 import { fetchUsers } from '../api/endpoints'
@@ -69,6 +69,7 @@ export default function UsersPage() {
             <option value="admin">مدير النظام</option>
             <option value="manager">مدير مقاولين</option>
             <option value="supervisor">مشرف ميداني</option>
+            <option value="user">مستخدم عادي</option>
           </select>
         </div>
       </section>
@@ -143,7 +144,7 @@ function UserForm({ user, onClose, onSuccess }) {
     password: '',
     role: user?.role || 'manager',
     is_active: user?.is_active ?? true,
-    contractor_id: user?.contractor?.id || ''
+    contractor_id: user?.contractor || ''
   })
   const [contractors, setContractors] = useState([])
   const [loadingContractors, setLoadingContractors] = useState(false)
@@ -153,19 +154,24 @@ function UserForm({ user, onClose, onSuccess }) {
   useEffect(() => {
     if (formData.role === 'supervisor') {
       setLoadingContractors(true)
-      // Only fetch contractors that are active and optionally unassigned
-      contractorService.list({ is_active: true, page_size: 100 })
+      contractorService.unassigned()
         .then(res => {
-          const allContractors = res.data?.results || []
-          // If we are in edit mode, we want to keep the current contractor in the list
-          setContractors(allContractors)
+          const unassigned = res.data || []
+          // In edit mode, add the current contractor back to the list so it can be selected
+          if (user?.contractor) {
+            const current = { id: user.contractor, name: user.contractor_name }
+            const alreadyIn = unassigned.some(c => c.id === current.id)
+            setContractors(alreadyIn ? unassigned : [current, ...unassigned])
+          } else {
+            setContractors(unassigned)
+          }
         })
         .catch(err => console.error('Failed to load contractors:', err))
         .finally(() => setLoadingContractors(false))
     } else {
       setFormData(prev => ({ ...prev, contractor_id: '' }))
     }
-  }, [formData.role])
+  }, [formData.role, user])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -256,6 +262,7 @@ function UserForm({ user, onClose, onSuccess }) {
                 <option value="admin">مدير نظام</option>
                 <option value="manager">مدير مقاولين</option>
                 <option value="supervisor">مشرف ميداني</option>
+                <option value="user">مستخدم عادي</option>
               </select>
             </div>
             <div className="space-y-1">

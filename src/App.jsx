@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage'
 import ReportsPage from './pages/ReportsPage'
 import ContractorsPage from './pages/ContractorsPage'
 import UsersPage from './pages/UsersPage'
+import SettingsPage from './pages/SettingsPage'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/daily-work" element={<DailyWorkPage />} />
           <Route path="/contractors" element={<ContractorsPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </AuthProvider>

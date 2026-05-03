@@ -53,10 +53,16 @@ export default function DashboardLayout() {
           ))}
 
         <div className="pt-4 mt-4 border-t border-slate-100">
-          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100">
+          <NavLink
+            to="/settings"
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-100'}`
+            }
+          >
             <Settings size={20} />
             <span>الإعدادات</span>
-          </button>
+          </NavLink>
 
           <button
             onClick={() => setShowLogoutConfirm(true)}

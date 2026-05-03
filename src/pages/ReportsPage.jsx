@@ -15,7 +15,7 @@ function AdminOnly({ children }) {
   return <>{children}</>
 }
 
-const filterDefaults = { search: '', type: '', contractor: '', created_at_after: '' }
+const filterDefaults = { search: '', type: '', contractor: '', status: '', created_at_after: '' }
 
 export default function ReportsPage() {
   const [filters, setFilters] = useState(filterDefaults)
@@ -38,9 +38,10 @@ export default function ReportsPage() {
       search: debouncedSearch,
       type: filters.type,
       contractor: filters.contractor,
+      status: filters.status,
       created_at_after: filters.created_at_after,
     }),
-    [debouncedSearch, filters.type, filters.contractor, filters.created_at_after],
+    [debouncedSearch, filters.type, filters.contractor, filters.status, filters.created_at_after],
   )
 
   const { data: reports, loading, error, refresh } = useApiList(fetchReports, params)
@@ -81,7 +82,7 @@ export default function ReportsPage() {
             </button>
           )}
         </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <input className="input" placeholder="بحث..." value={filters.search} onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))} />
           <select className="input" value={filters.type} onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))}>
             <option value="">جميع الأنواع</option>
@@ -89,6 +90,14 @@ export default function ReportsPage() {
             <option value="asphalt">أسفلت</option>
             <option value="sidewalk">أرصفة</option>
             <option value="other">أخرى</option>
+          </select>
+          <select className="input" value={filters.status} onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}>
+            <option value="">جميع الحالات</option>
+            <option value="new">جديد</option>
+            <option value="in_progress">قيد التنفيذ</option>
+            <option value="completed">مكتمل</option>
+            <option value="violation">مخالفة</option>
+            <option value="closed">مغلق</option>
           </select>
           <select className="input" value={filters.contractor} onChange={(e) => setFilters((p) => ({ ...p, contractor: e.target.value }))}>
             <option value="">جميع المقاولين</option>

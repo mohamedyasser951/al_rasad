@@ -1,29 +1,23 @@
-import { Building2, Plus, Search, MoreVertical, Edit2, Trash2, User, Phone, Mail, FileCheck } from 'lucide-react'
+import { Building2, Plus, Search, Edit2, Trash2, User, Phone, Mail } from 'lucide-react'
 import { useMemo, useState, useEffect } from 'react'
-import { contractorService, userService } from '../api/services'
+import { contractorService } from '../api/services'
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States'
 import { fetchContractors } from '../api/endpoints'
 import useApiList from '../hooks/useApiList'
 import useDebounce from '../hooks/useDebounce'
 
 export default function ContractorsPage() {
-  const [filters, setFilters] = useState({ search: '', manager_id: '' })
+  const [filters, setFilters] = useState({ search: '' })
   const [selectedContractor, setSelectedContractor] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [viewingProfile, setViewingProfile] = useState(null)
-  const [managers, setManagers] = useState([])
-
-  useEffect(() => {
-    userService.list({ role: 'manager' }).then(res => setManagers(res.data?.results || []))
-  }, [])
 
   const debouncedSearch = useDebounce(filters.search, 500)
 
   const params = useMemo(() => ({
     search: debouncedSearch,
-    user_id: filters.manager_id,
     page_size: 50
-  }), [debouncedSearch, filters.manager_id])
+  }), [debouncedSearch])
 
   const { data: contractors, loading, error, refresh } = useApiList(fetchContractors, params)
 
@@ -55,26 +49,14 @@ export default function ContractorsPage() {
       </header>
 
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              className="input pl-11 w-full"
-              placeholder="بحث باسم المقاول..."
-              value={filters.search}
-              onChange={(e) => setFilters(p => ({ ...p, search: e.target.value }))}
-            />
-          </div>
-          <select
-            className="input"
-            value={filters.manager_id}
-            onChange={(e) => setFilters(p => ({ ...p, manager_id: e.target.value }))}
-          >
-            <option value="">جميع المشرفين</option>
-            {managers.map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
+        <div className="max-w-md relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input
+            className="input pl-11 w-full"
+            placeholder="بحث باسم المقاول..."
+            value={filters.search}
+            onChange={(e) => setFilters(p => ({ ...p, search: e.target.value }))}
+          />
         </div>
       </section>
 
@@ -109,7 +91,7 @@ export default function ContractorsPage() {
             <div className="mb-6 space-y-2">
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <User size={14} className="text-blue-500" />
-                <span>المشرف: {contractor.responsible_user?.name || 'غير محدد'}</span>
+                <span>المشرف: {contractor.supervisor?.name || 'غير محدد'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <Phone size={14} className="text-blue-500" />
@@ -160,28 +142,13 @@ export default function ContractorsPage() {
 function ContractorForm({ contractor, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     name: contractor?.name || '',
+    contact_person: contractor?.contact_person || '',
     phone: contractor?.phone || '',
     email: contractor?.email || '',
-    user_id: contractor?.responsible_user?.id || '',
     is_active: contractor?.is_active ?? true
   })
-  const [users, setUsers] = useState([])
-  const [loadingUsers, setLoadingUsers] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
-
-  useEffect(() => {
-    let mounted = true
-    userService.list({ role: 'manager' })
-      .then(res => {
-        if (mounted) setUsers(res.data?.results || [])
-      })
-      .catch(err => console.error('Failed to load managers:', err))
-      .finally(() => {
-        if (mounted) setLoadingUsers(false)
-      })
-    return () => { mounted = false }
-  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -204,7 +171,7 @@ function ContractorForm({ contractor, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl animate-in fade-in zoom-in duration-200 text-right" dir="rtl">
         <h2 className="mb-6 text-2xl font-bold text-slate-900">
           {contractor ? 'تعديل بيانات المقاول' : 'إضافة مقاول جديد'}
         </h2>
@@ -221,21 +188,13 @@ function ContractorForm({ contractor, onClose, onSuccess }) {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-slate-700">المسؤول (المشرف) *</label>
-            <select
-              required
+            <label className="text-sm font-semibold text-slate-700">مسؤول التواصل</label>
+            <input
               className="input w-full"
-              value={formData.user_id}
-              onChange={e => setFormData({ ...formData, user_id: e.target.value })}
-              disabled={loadingUsers}
-            >
-              <option value="">اختر مشرفاً...</option>
-              {users.map(u => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
-            {loadingUsers && <p className="text-[10px] text-blue-600 animate-pulse">جاري تحميل المشرفين...</p>}
-            {errors.user_id && <p className="text-xs text-red-500 mt-1">{errors.user_id[0]}</p>}
+              value={formData.contact_person}
+              onChange={e => setFormData({ ...formData, contact_person: e.target.value })}
+            />
+            {errors.contact_person && <p className="text-xs text-red-500 mt-1">{errors.contact_person[0]}</p>}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -264,7 +223,7 @@ function ContractorForm({ contractor, onClose, onSuccess }) {
             <button type="button" onClick={onClose} className="rounded-xl px-6 py-2 text-sm font-bold text-slate-500 hover:bg-slate-50">إلغاء</button>
             <button
               type="submit"
-              disabled={submitting || loadingUsers}
+              disabled={submitting}
               className="rounded-xl bg-blue-600 px-8 py-2 text-sm font-bold text-white shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50"
             >
               {submitting ? 'جاري الحفظ...' : 'حفظ البيانات'}

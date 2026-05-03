@@ -30,3 +30,6 @@ export const fetchUsers = (params = {}) =>
 
 export const fetchContractorProfile = (id) =>
   handleResponse(() => contractorService.profile(id))
+
+export const fetchUnassignedContractors = () =>
+  handleResponse(() => contractorService.unassigned())

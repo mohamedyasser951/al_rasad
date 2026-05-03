@@ -15,6 +15,9 @@ export const authService = {
 
   register: (data) =>
     axiosInstance.post('/auth/register/', data),
+
+  changePassword: (data) =>
+    axiosInstance.post('/auth/change-password/', data),
 }
 
 export const contractorService = {
@@ -38,6 +41,9 @@ export const contractorService = {
 
   profile: (id) =>
     axiosInstance.get(`/contractors/${id}/profile/`),
+
+  unassigned: () =>
+    axiosInstance.get('/contractors/unassigned/'),
 }
 
 export const reportService = {
