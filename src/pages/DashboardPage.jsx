@@ -1,8 +1,9 @@
-import { AlertTriangle, CheckCircle2, Clock3, FolderKanban } from 'lucide-react'
-import { useMemo } from 'react'
+import { AlertTriangle, CheckCircle2, Clock3, FolderKanban, Activity, BarChart3 } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
-import { fetchReports, fetchContractors } from '../api/endpoints'
+import { fetchReports } from '../api/endpoints'
+import { dashboardService } from '../api/services'
 import { ErrorState, LoadingState } from '../components/common/States'
 import useApiList from '../hooks/useApiList'
 
@@ -18,37 +19,50 @@ let DefaultIcon = L.icon({
 })
 L.Marker.prototype.options.icon = DefaultIcon
 
-function normalizeKpis(reports, contractors) {
-  const today = new Date().toDateString()
-  const dailyCount = reports.filter(r => new Date(r.created_at).toDateString() === today).length || 0
-  const totalContractors = contractors.length
-  const totalReports = reports.length
-
-  return {
-    dailyCount,
-    totalContractors,
-    totalReports
-  }
-}
-
 export default function DashboardPage() {
+  const [kpis, setKpis] = useState(null)
+  const [loadingKpis, setLoadingKpis] = useState(true)
+  const [errorKpis, setErrorKpis] = useState(null)
+  
   const params = useMemo(() => ({ page: 1, page_size: 100 }), [])
   const { data: reports, loading: loadingReports, error: errorReports } = useApiList(fetchReports, params)
-  const { data: contractors, loading: loadingContractors, error: errorContractors } = useApiList(fetchContractors, params)
 
-  if (loadingReports || loadingContractors) return <LoadingState lines={6} />
-  if (errorReports || errorContractors) return <ErrorState message="تعذر تحميل لوحة التحكم." />
+  useEffect(() => {
+    dashboardService.getKpi()
+      .then(res => {
+        setKpis(res.data)
+        setLoadingKpis(false)
+      })
+      .catch(err => {
+        console.error('Failed to load dashboard KPIs:', err)
+        setErrorKpis(err)
+        setLoadingKpis(false)
+      })
+  }, [])
 
-
-  const kpis = normalizeKpis(reports, contractors)
+  if (loadingReports || loadingKpis) return <LoadingState lines={6} />
+  if (errorReports || errorKpis) return <ErrorState message="تعذر تحميل لوحة التحكم." />
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <KpiCard icon={<Clock3 size={18} />} title="إجمالي البلاغات" value={kpis.totalReports} />
-        <KpiCard icon={<Clock3 size={18} />} title="بلاغات اليوم" value={kpis.dailyCount} />
-        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين " value={kpis.totalContractors} />
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard icon={<FolderKanban size={18} />} title="المقاولين" value={kpis?.total_contractors || 0} />
+        <KpiCard icon={<Activity size={18} />} title="المقاولين النشطين" value={kpis?.active_contractors || 0} />
+        <KpiCard icon={<Clock3 size={18} />} title="إجمالي البلاغات" value={kpis?.total_reports || 0} />
+        <KpiCard icon={<BarChart3 size={18} />} title="الأعمال اليومية" value={kpis?.total_daily_work || 0} />
       </section>
+
+      {/* Breakdown by status if available */}
+      {kpis?.reports_by_status && (
+        <section className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+          {Object.entries(kpis.reports_by_status).map(([status, count]) => (
+            <div key={status} className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+              <p className="text-[10px] font-bold text-slate-500 uppercase">{status}</p>
+              <p className="text-lg font-black text-slate-900">{count}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       <section className="grid gap-4">
         <article className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">

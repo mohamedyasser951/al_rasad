@@ -6,6 +6,14 @@ import { EmptyState, ErrorState, LoadingState } from '../components/common/State
 import LocationPicker from '../components/common/LocationPicker'
 import UploadArea from '../components/common/UploadArea'
 import useApiList from '../hooks/useApiList'
+import useDebounce from '../hooks/useDebounce'
+import { useAuth } from '../auth/AuthContext'
+
+function AdminOnly({ children }) {
+  const { user } = useAuth()
+  if (user?.role !== 'admin') return null
+  return <>{children}</>
+}
 
 const filterDefaults = { search: '', type: '', contractor: '', created_at_after: '' }
 
@@ -21,20 +29,32 @@ export default function ReportsPage() {
     }).catch(err => console.error('Failed to load contractors:', err))
   }, [])
 
+  const debouncedSearch = useDebounce(filters.search, 500)
+
   const params = useMemo(
     () => ({
       page: 1,
       page_size: 100,
-      search: filters.search,
+      search: debouncedSearch,
       type: filters.type,
       contractor: filters.contractor,
       created_at_after: filters.created_at_after,
     }),
-    [filters],
+    [debouncedSearch, filters.type, filters.contractor, filters.created_at_after],
   )
 
-  const { data: reports, loading, error } = useApiList(fetchReports, params)
+  const { data: reports, loading, error, refresh } = useApiList(fetchReports, params)
   const selectedReport = useMemo(() => reports.find((item) => item.id === selectedReportId), [reports, selectedReportId])
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await reportService.changeStatus(id, { status })
+      refresh()
+      setSelectedReportId(null)
+    } catch (err) {
+      alert('فشل تغيير الحالة')
+    }
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -105,7 +125,19 @@ export default function ReportsPage() {
                         {report.report_number}
                       </button>
                     </td>
-                    <td className="px-4 py-4">{report.type_display}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col">
+                        <span>{report.type_display}</span>
+                        <span className={`text-[10px] font-bold ${
+                          report.status === 'completed' ? 'text-green-600' :
+                          report.status === 'violation' ? 'text-red-600' :
+                          report.status === 'in_progress' ? 'text-blue-600' :
+                          'text-slate-500'
+                        }`}>
+                          {report.status_display}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-4 py-4 text-slate-500">{report.location_name}</td>
                     <td className="px-4 py-4">{report.contractor?.name || 'غير محدد'}</td>
 
@@ -118,8 +150,8 @@ export default function ReportsPage() {
         )}
       </section>
 
-      {showForm && <NewReportForm onClose={() => { setShowForm(false); window.location.reload(); }} />}
-      {selectedReport && <ReportDetails report={selectedReport} onClose={() => setSelectedReportId(null)} />}
+      {showForm && <NewReportForm onClose={() => { setShowForm(false); refresh(); }} />}
+      {selectedReport && <ReportDetails report={selectedReport} onClose={() => setSelectedReportId(null)} onStatusChange={handleStatusChange} />}
     </div>
   )
 }
@@ -333,18 +365,33 @@ function NewReportForm({ onClose }) {
 }
 
 
-function ReportDetails({ report, onClose }) {
-  const beforeImageUrl = report.before_image_url || report.before_image
-  const afterImageUrl = report.after_image_url || report.after_image
+function ReportDetails({ report, onClose, onStatusChange }) {
+  const beforeImageUrl = report.before_image_url
+  const afterImageUrl = report.after_image_url
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
         <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
           <h3 className="text-xl font-bold text-slate-900">تفاصيل البلاغ {report.report_number}</h3>
-          <button onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200">
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            <AdminOnly>
+              <select 
+                className="rounded-lg bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600 border-none outline-none"
+                value={report.status}
+                onChange={(e) => onStatusChange(report.id, e.target.value)}
+              >
+                <option value="new">جديد</option>
+                <option value="in_progress">قيد التنفيذ</option>
+                <option value="completed">مكتمل</option>
+                <option value="violation">مخالفة</option>
+                <option value="closed">مغلق</option>
+              </select>
+            </AdminOnly>
+            <button onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200">
+              <X size={20} />
+            </button>
+          </div>
         </div>
         
         <div className="space-y-6">

@@ -7,8 +7,11 @@ export default function useApiList(fetcher, params = {}) {
     loading: true,
     error: null,
   })
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+
   useEffect(() => {
     let mounted = true
+    setState((prev) => ({ ...prev, loading: true }))
 
     fetcher(params)
       .then((response) => {
@@ -33,7 +36,10 @@ export default function useApiList(fetcher, params = {}) {
     return () => {
       mounted = false
     }
-  }, [fetcher, params])
+  }, [fetcher, JSON.stringify(params), refreshTrigger])
 
-  return state
+  return {
+    ...state,
+    refresh: () => setRefreshTrigger((t) => t + 1),
+  }
 }

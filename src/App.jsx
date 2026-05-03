@@ -6,6 +6,8 @@ import DailyWorkPage from './pages/DailyWorkPage'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import ReportsPage from './pages/ReportsPage'
+import ContractorsPage from './pages/ContractorsPage'
+import UsersPage from './pages/UsersPage'
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/daily-work" element={<DailyWorkPage />} />
+          <Route path="/contractors" element={<ContractorsPage />} />
+          <Route path="/users" element={<UsersPage />} />
         </Route>
       </Routes>
     </AuthProvider>

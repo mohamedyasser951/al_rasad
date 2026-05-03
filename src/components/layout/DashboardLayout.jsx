@@ -1,4 +1,4 @@
-import { FileText, LayoutDashboard, LogOut, Menu, Settings, X } from 'lucide-react'
+import { FileText, LayoutDashboard, LogOut, Menu, Settings, X, Building2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
@@ -7,6 +7,8 @@ const links = [
   { to: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
   { to: '/reports', label: 'البلاغات', icon: FileText },
   { to: '/daily-work', label: 'توثيق الأعمال اليوميه', icon: FileText },
+  { to: '/contractors', label: 'المقاولين', icon: Building2 },
+  { to: '/users', label: 'المستخدمين', icon: Users, adminOnly: true },
 ]
 
 export default function DashboardLayout() {
@@ -34,19 +36,21 @@ export default function DashboardLayout() {
       </div>
 
       <nav className="space-y-2 flex-1">
-        {links.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={() => setIsOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200 ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-100'}`
-            }
-          >
-            <item.icon size={20} />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        {links
+          .filter((item) => !item.adminOnly || user?.role === 'admin')
+          .map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => setIsOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200 ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-100'}`
+              }
+            >
+              <item.icon size={20} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
 
         <div className="pt-4 mt-4 border-t border-slate-100">
           <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100">

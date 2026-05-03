@@ -1,4 +1,4 @@
-import { reportService, dailyWorkService, contractorService } from './services'
+import { reportService, dailyWorkService, contractorService, userService } from './services'
 
 const handleResponse = async (requestFn) => {
   try {
@@ -24,3 +24,9 @@ export const fetchContractorDetails = (id) =>
 
 export const fetchDailyWork = (params = {}) => 
   handleResponse(() => dailyWorkService.list(params))
+
+export const fetchUsers = (params = {}) =>
+  handleResponse(() => userService.list(params))
+
+export const fetchContractorProfile = (id) =>
+  handleResponse(() => contractorService.profile(id))
