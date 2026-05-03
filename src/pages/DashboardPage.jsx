@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import { fetchReports, fetchContractors } from '../api/endpoints'
-import { EmptyState, ErrorState, LoadingState } from '../components/common/States'
+import { ErrorState, LoadingState } from '../components/common/States'
 import useApiList from '../hooks/useApiList'
 
 // Fix for Leaflet default icons
@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   if (loadingReports || loadingContractors) return <LoadingState lines={6} />
   if (errorReports || errorContractors) return <ErrorState message="تعذر تحميل لوحة التحكم." />
-  if (!reports.length && !contractors.length) return <EmptyState message="لا توجد بيانات للوحة التحكم حالياً." />
+
 
   const kpis = normalizeKpis(reports, contractors)
 

@@ -69,23 +69,27 @@ export default function DailyWorkPage() {
         {loading ? (
           <LoadingState lines={5} />
         ) : !selectedContractor ? (
-          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {contractors.map((contractor) => (
-              <button
-                key={contractor.id}
-                onClick={() => setSelectedContractor(contractor)}
-                className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
-              >
-                <div className="rounded-2xl p-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
-                  <Building2 size={32} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-800">{contractor.name}</h3>
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                  {activeTab === 'new' ? 'بدء التوثيق' : 'عرض السجل'}
-                </div>
-              </button>
-            ))}
-          </section>
+          contractors.length === 0 ? (
+            <EmptyState message="لا يوجد مقاولين مسجلين حالياً." />
+          ) : (
+            <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {contractors.map((contractor) => (
+                <button
+                  key={contractor.id}
+                  onClick={() => setSelectedContractor(contractor)}
+                  className="group relative flex flex-col items-center justify-center gap-4 rounded-3xl bg-white p-10 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-xl hover:ring-blue-500 animate-fade-up"
+                >
+                  <div className="rounded-2xl p-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
+                    <Building2 size={32} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">{contractor.name}</h3>
+                  <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    {activeTab === 'new' ? 'بدء التوثيق' : 'عرض السجل'}
+                  </div>
+                </button>
+              ))}
+            </section>
+          )
         ) : activeTab === 'new' ? (
           <div className="mx-auto max-w-3xl">
             <DailyWorkForm contractor={selectedContractor} onSuccess={() => setSelectedContractor(null)} />
